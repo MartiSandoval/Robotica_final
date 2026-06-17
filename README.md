@@ -235,9 +235,9 @@ Las métricas se calculan a partir de los archivos CSV generados durante la simu
 
 | Escenario | Enlace |
 |-----------|--------|
-| SIMPLE | [Video Escenario Simple](analysis/Videos/simple.mp4) |
-| COMPLEJO | [Video Escenario Complejo](analysis/Videos/complejo.mp4) |
-| MUY_COMPLEJO | [Video Escenario Muy Complejo](analysis/Videos/complejo2.mp4) |
+| SIMPLE | [Video Escenario Simple](https://drive.google.com/file/d/1pN5vyCnL4VWmhJzzlpsHVfoB3APdUmuT/view?usp=drive_link) |
+| COMPLEJO | [Video Escenario Complejo](https://drive.google.com/file/d/1ZoAkilCsNLIigbdXc8-LEwCP-40yA8SJ/view?usp=drive_link) |
+| MUY COMPLEJO | [Video Escenario Muy Complejo](https://drive.google.com/file/d/1nCmMZZ0z0TqugLZ9ELGUfmGIuj_97Smh/view?usp=drive_link) |
 
 ---
 
