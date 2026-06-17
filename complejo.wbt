@@ -1,0 +1,203 @@
+#VRML_SIM R2025a utf8
+
+EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2025a/projects/objects/backgrounds/protos/TexturedBackground.proto"
+EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2025a/projects/objects/backgrounds/protos/TexturedBackgroundLight.proto"
+EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2025a/projects/objects/floors/protos/RectangleArena.proto"
+EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2025a/projects/robots/gctronic/e-puck/protos/E-puck.proto"
+
+WorldInfo {
+}
+Viewpoint {
+  orientation 0.5624162135699621 -0.5530381281246763 -0.6146843348857858 4.2289354830382155
+  position 0.16931299738733485 -0.655836487538388 5.9750140385106745
+}
+TexturedBackground {
+}
+TexturedBackgroundLight {
+}
+RectangleArena {
+  floorSize 2 2
+}
+E-puck {
+  translation -0.869998 -0.87 0
+  rotation 0 0 1 1.5708
+}
+Solid {
+  translation 0.19 -0.56 0.05
+  children [
+    Shape {
+      appearance PBRAppearance {
+        baseColor 0.7 0.6 1
+        metalness 0
+      }
+      geometry Box {
+        size 0.6 0.3 0.1
+      }
+    }
+  ]
+  name "bloque1"
+  boundingObject Box {
+    size 0.6 0.3 0.1
+  }
+}
+Solid {
+  translation 0.34 -0.11 0.05
+  rotation 0 0 1 -1.5707953071795862
+  children [
+    Shape {
+      appearance PBRAppearance {
+        baseColor 0.7 0.6 1
+        metalness 0
+      }
+      geometry Box {
+        size 0.6 0.3 0.1
+      }
+    }
+  ]
+  name "bloque2"
+  boundingObject Box {
+    size 0.6 0.3 0.1
+  }
+}
+Solid {
+  translation 0.59 -0.24 0.05
+  rotation 0 0 1 -1.5707953071795862
+  children [
+    Shape {
+      appearance PBRAppearance {
+        baseColor 0.7 0.6 1
+        metalness 0
+      }
+      geometry Box {
+        size 0.3 0.2 0.1
+      }
+    }
+  ]
+  name "bloque3"
+  boundingObject Box {
+    size 0.3 0.2 0.1
+  }
+}
+Solid {
+  translation 0.34 -0.86 0.05
+  rotation 0 0 1 -1.5707953071795862
+  name "bloque_invisible"
+  boundingObject Box {
+    size 0.3 0.3 0.1
+  }
+}
+Solid {
+  translation 0.9 0.34 0.05
+  rotation 0 0 1 -1.5707953071795862
+  children [
+    Shape {
+      appearance PBRAppearance {
+        baseColor 0.7 0.6 1
+        metalness 0
+      }
+      geometry Box {
+        size 0.3 0.2 0.1
+      }
+    }
+  ]
+  name "bloque4"
+  boundingObject Box {
+    size 0.3 0.2 0.1
+  }
+}
+Solid {
+  translation 0.0100693 0.589526 0.05
+  rotation 0 0 1 -0.523595307179586
+  children [
+    Shape {
+      appearance PBRAppearance {
+        baseColor 0.7 0.6 1
+        metalness 0
+      }
+      geometry Box {
+        size 0.1 0.3 0.1
+      }
+    }
+  ]
+  name "bloque5"
+  boundingObject Box {
+    size 0.1 0.3 0.1
+  }
+}
+Solid {
+  translation 0.19 0.34 0.05
+  children [
+    Shape {
+      appearance PBRAppearance {
+        baseColor 0.7 0.6 1
+        metalness 0
+      }
+      geometry Box {
+        size 0.6 0.3 0.1
+      }
+    }
+  ]
+  name "bloque6"
+  boundingObject Box {
+    size 0.6 0.3 0.1
+  }
+}
+Solid {
+  translation -0.89993 -0.562913 0.05
+  rotation 0 0 1 1.5708
+  children [
+    Shape {
+      appearance PBRAppearance {
+        baseColor 0.7 0.6 1
+        metalness 0
+      }
+      geometry Box {
+        size 0.1 0.2 0.1
+      }
+    }
+  ]
+  name "bloque7"
+  boundingObject Box {
+    size 0.1 0.2 0.1
+  }
+}
+Solid {
+  translation -0.5 -0.1 0
+  children [
+    Shape {
+      appearance PBRAppearance {
+        baseColor 0.6 0.7 1
+        metalness 0
+      }
+      geometry Cylinder {
+        height 0.2
+        radius 0.26
+      }
+    }
+  ]
+  name "cilindro1"
+  boundingObject Cylinder {
+    height 0.2
+    radius 0.26
+  }
+}
+Solid {
+  translation -0.8 0.79 0
+  children [
+    Shape {
+      appearance PBRAppearance {
+        baseColor 0.6 0.7 1
+        metalness 0
+      }
+      geometry Cylinder {
+        height 0.2
+        radius 0.4
+      }
+    }
+  ]
+  name "cilindro2"
+  boundingObject Cylinder {
+    height 0.2
+    radius 0.4
+  }
+}
