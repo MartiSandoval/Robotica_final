@@ -15,6 +15,7 @@
 ## Objetivo del proyecto
 
 Desarrollar un sistema de navegación autónoma híbrido para el robot diferencial E-puck en el simulador Webots. El proyecto implementa una capa deliberativa utilizando el algoritmo A* para la planificación global de rutas sobre un mapa discretizado, y una capa reactiva de evasión de obstáculos basada en sensores infrarrojos. El rendimiento de la arquitectura se evalúa empíricamente en tres entornos de complejidad creciente, contrastando la trayectoria cinemática real (odometría) frente a la ruta ideal planificada.
+
 ---
 
 ## Especificaciones de Hardware Simulado
