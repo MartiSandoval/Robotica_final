@@ -8,7 +8,7 @@ import os
 # CONFIGURACIÓN MAESTRA DEL ESCENARIO
 # =============================================================================
 # 'SIMPLE' o 'COMPLEJO' o 'MUY_COMPLEJO'
-ESCENARIO_ACTUAL = "MUY_COMPLEJO" 
+ESCENARIO_ACTUAL = "SIMPLE" 
 
 TAMANO_CELDA = 0.05
 INFLACION    = 0.05
