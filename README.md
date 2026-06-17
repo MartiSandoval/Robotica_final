@@ -6,9 +6,9 @@
 
 | Nombre |
 |--------|
-| Felipe Astudillo| 
-| Martina Sandoval|
-| Julian Guerrero|
+| Felipe Astudillo (Programador, análisis de datos, documentador)| 
+| Martina Sandoval (Programador, diseño del entorno)|
+| Julian Guerrero (Documentador, análisis de datos)|
 
 ---
 
