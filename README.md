@@ -221,7 +221,7 @@ Las métricas se calculan a partir de los archivos CSV generados durante la simu
 ![Trayectoria COMPLEJO](analysis/Complejo/trajectory_analysis_COMPLEJO.png)
 
 **Escenario MUY COMPLEJO (3×3 m)**
-![Trayectoria MUY COMPLEJO](analysis/%3CMuy%20Complejo%3E/trajectory_analysis_MUY_COMPLEJO.png)
+![Trayectoria MUY COMPLEJO](analysis/Muy_Complejo/trajectory_analysis_MUY_COMPLEJO.png)
 
 > **Leyenda de los gráficos:**  
 > — Línea azul discontinua: ruta planificada por A*  
