@@ -6,15 +6,68 @@
 
 | Nombre |
 |--------|
-| Felipe Astudillo| 
-| Martina Sandoval|
-| Julian Guerrero|
+| Felipe Astudillo |
+| Martina Sandoval |
+| Julian Guerrero |
+
+---
+
+## Contenidos
+
+1. [Objetivo del proyecto](#objetivo-del-proyecto)
+2. [Relación con los Laboratorios 1 y 2](#relación-con-los-laboratorios-1-y-2)
+3. [Descripción del robot, sensores y actuadores](#descripción-del-robot-sensores-y-actuadores)
+4. [Descripción de los escenarios de prueba](#descripción-de-los-escenarios-de-prueba)
+5. [Explicación del algoritmo implementado](#explicación-del-algoritmo-implementado)
+6. [Diagrama de flujo de la solución](#diagrama-de-flujo-de-la-solución)
+7. [Resultados obtenidos y métricas de desempeño](#resultados-obtenidos-y-métricas-de-desempeño)
+8. [Videos de la simulación](#videos-de-la-simulación)
+9. [Instrucciones para ejecutar la simulación](#instrucciones-para-ejecutar-la-simulación)
+10. [Conclusiones, limitaciones y posibles mejoras](#conclusiones-limitaciones-y-posibles-mejoras)
 
 ---
 
 ## Objetivo del proyecto
 
 Desarrollar un sistema de navegación autónoma para el robot diferencial E-puck en el simulador Webots, implementando el algoritmo A* para la planificación global de rutas sobre un mapa discretizado en celdas, complementado con un controlador de seguimiento de waypoints y una capa de evasión reactiva de obstáculos basada en sensores infrarrojos. El sistema se evalúa en tres entornos de complejidad creciente, midiendo la trayectoria real ejecutada frente a la ruta planificada.
+
+---
+
+## Relación con los Laboratorios 1 y 2
+
+Este proyecto final integra y extiende los conceptos y herramientas desarrollados en los dos laboratorios previos del curso. La siguiente tabla resume la progresión acumulativa:
+
+| Laboratorio | Aporte al proyecto final |
+|-------------|--------------------------|
+| **Lab 1** – Cinemática del robot diferencial | Modelo cinemático, plataforma e-puck, control de velocidades |
+| **Lab 2** – Navegación reactiva y filtrado | Filtro de Kalman, máquina de estados reactiva, anti-atasco |
+| **Proyecto Final** | Planificación global A* sobre mapa discretizado + capas anteriores |
+
+### Desde el Laboratorio 1
+
+En el Lab 1 se estudió el comportamiento cinemático del e-puck al variar las velocidades de las ruedas izquierda $v_l$ y derecha $v_r$:
+
+- **Modelo cinemático:** $v = (v_r + v_l) / 2$, $\omega = (v_r - v_l) / L$  
+  Este mismo modelo es la base de la odometría del proyecto final. En cada paso de 32 ms se calcula `ds = (ds_l + ds_r) / 2` y `dφ = (ds_r - ds_l) / L` para estimar la pose `(x, y, φ)` del robot.
+
+- **Control de movimiento:** Los tres patrones explorados en Lab 1 reaparecen directamente en el controlador Stop-and-Turn del proyecto final:
+  - Línea recta (`vr = vl`) → fase de avance hacia el waypoint.
+  - Giro en el eje (`vr = −vl`) → fase de reorientación del Stop-and-Turn y de la evasión reactiva.
+  - Curva (`vr ≠ vl`) → corrección suave de ángulo durante el avance.
+
+- **Perturbaciones:** Las pruebas con ruido en los actuadores del Lab 1 evidenciaron la necesidad de complementar el control cinemático con retroalimentación sensorial, motivando el filtrado desarrollado en Lab 2 e incorporado al proyecto final.
+
+### Desde el Laboratorio 2
+
+El Lab 2 implementó un sistema de navegación reactiva para el mismo e-puck, con sensores IR y encoders. Sus contribuciones se reutilizan directamente en el proyecto final:
+
+1. **Filtro de Kalman escalar:** Se reutiliza la estructura del filtro de Kalman del Lab 2 con los mismos parámetros (`Q = 0.001`, `R = 0.0005`). En el proyecto final el filtro suaviza la **intensidad IR normalizada** (`z_k = max(ps0,ps1,ps6,ps7) / 4095`) para reducir falsas detecciones. A diferencia del Lab 2 (donde la predicción incorporaba el avance por encoder), aquí la predicción es un modelo de proceso constante (`d_pred = d_est`), ya que la ruta A* garantiza que el robot no debería acercarse a obstáculos durante el avance normal.
+
+2. **Máquina de estados reactiva:** La secuencia ADVANCING → BACKING → TURNING del Lab 2 se hereda como la capa de evasión reactiva del proyecto final (FOLLOW_PATH → BACKING → TURNING), con los mismos 15 pasos de retroceso y el rango de 20–120 pasos de giro.
+
+3. **Mecanismo anti-atasco:** La lógica de detección de bucle (≥ 4 giros en una ventana de 600 iteraciones) y el giro de escape forzado de 90 pasos se transfieren sin modificación.
+
+4. **Configuración de sensores:** El mismo tiempo de muestreo (Ts = 32 ms), radio de rueda (`R = 0.0205 m`) y distribución de los sensores IR (`ps0–ps7`) se mantienen constantes a lo largo de los tres trabajos.
 
 ---
 
@@ -39,7 +92,7 @@ Desarrollar un sistema de navegación autónoma para el robot diferencial E-puck
 | 8 sensores IR de proximidad (`ps0`–`ps7`) | Detección de obstáculos imprevistos |
 | Encoders de ruedas (izquierdo y derecho) | Odometría para estimar posición `(x, y, φ)` |
 
-Los sensores frontales y diagonales (`ps0`, `ps1`, `ps6`, `ps7`) se fusionan mediante un **Filtro de Kalman escalar** para suavizar las lecturas ruidosas y estimar la distancia al obstáculo más cercano.
+Los sensores frontales y diagonales (`ps0`, `ps1`, `ps6`, `ps7`) se fusionan mediante un **Filtro de Kalman escalar** para suavizar las lecturas ruidosas y estimar la proximidad al obstáculo más cercano. El filtro trabaja sobre intensidad normalizada (0 = sin obstáculo, 1 = contacto); el obstáculo se considera detectado cuando la estimación supera el umbral de `2000/4095 ≈ 0.488`.
 
 ### Modelo de odometría
 
@@ -112,7 +165,7 @@ Un waypoint se da por alcanzado cuando la distancia euclidiana al robot es menor
 
 ### 3. Evasión reactiva
 
-Como el mapa A* infla obstáculos, el robot confía en la ruta planificada. La evasión solo se activa ante colisiones inminentes (lectura IR > 2000/4095 ≈ 48.8 % del rango). El sistema usa una **máquina de 3 estados**:
+Como el mapa A* infla obstáculos, el robot confía en la ruta planificada. La evasión solo se activa ante colisiones inminentes: cuando la **estimación Kalman de intensidad** supera `2000/4095 ≈ 0.488` (equivalente a un obstáculo a menos de ~1 cm). El umbral es deliberadamente alto para evitar que el robot abandone la ruta planificada ante falsas detecciones. El sistema usa una **máquina de 3 estados**:
 
 | Estado | Acción |
 |--------|--------|
@@ -199,18 +252,22 @@ función A_STAR(mapa, inicio, meta):
 
 ## Resultados obtenidos y métricas de desempeño
 
+Los **waypoints** son los nodos intermedios de la ruta calculada por A* — coordenadas del mundo real que el robot debe alcanzar en orden para ir del punto de inicio a la meta. Su avance se determina midiendo la distancia entre la pose estimada por odometría y cada waypoint activo; cuando esa distancia cae bajo 2.5 cm, el waypoint se da por completado y se avanza al siguiente.
+
 Las métricas se calculan a partir de los archivos CSV generados durante la simulación.
 
-| Escenario | Waypoints planificados | Pasos de simulación | Duración | Activaciones de evasión | Éxito |
-|-----------|----------------------|---------------------|----------|------------------------|-------|
+| Escenario | Waypoints A* | Pasos de simulación | Duración | Activaciones de evasión | Éxito real |
+|-----------|-------------|---------------------|----------|------------------------|------------|
 | SIMPLE | 25 | 901 | 28.8 s | 35 | ✓ |
 | COMPLEJO | 57 | 1,687 | 54.0 s | 0 | ✓ |
-| MUY_COMPLEJO | 122 | 7,337 | 234.8 s | 1,890 | ✓ |
+| MUY_COMPLEJO | 122 | 7,337 | 234.8 s | 1,890 | ✗ |
+
+> **Nota sobre MUY_COMPLEJO:** el contador de waypoints completados (basado en odometría) **no refleja la realidad física**. En la simulación real, el robot acumuló tanta deriva odométrica desde el inicio que su trayectoria física divergió completamente de la estimada: el robot se desplazó en una dirección incorrecta y permaneció en su mayor parte cerca del punto de partida, mientras la odometría "creía" estar recorriendo la ruta planificada. Las 1,890 activaciones de evasión introdujeron rotaciones sucesivas que corrompieron irreversiblemente la estimación de ángulo.
 
 **Observaciones:**
 - En **SIMPLE**, la evasión se activa 35 veces debido al espacio reducido (1×1 m) y la cercanía de los obstáculos.
 - En **COMPLEJO**, la ruta A* es suficientemente buena para llegar sin ninguna evasión reactiva.
-- En **MUY_COMPLEJO**, el elevado número de activaciones (1,890) refleja la densidad de obstáculos y la longitud de la misión (≈ 235 s). El robot logra completar la ruta gracias al mecanismo anti-atasco.
+- En **MUY_COMPLEJO**, el sistema **falló**. La combinación de un entorno muy denso (22 obstáculos, arena 3×3 m) con una misión larga (≈235 s) superó la tolerancia a la deriva del sistema. Sin relocalización ni corrección de pose, el error acumulado hizo que el robot físico no completara la ruta.
 
 ### Trayectorias ejecutadas
 
@@ -242,6 +299,36 @@ Las métricas se calculan a partir de los archivos CSV generados durante la simu
 ---
 
 ## Instrucciones para ejecutar la simulación
+
+### Estructura de carpetas
+
+```
+Robotica_final/
+├── controllers/
+│   └── robot_controller/
+│       └── robot_controller.py        ← controlador principal (A* + odometría + Kalman)
+├── worlds/
+│   ├── simple.wbt                     ← escenario 1×1 m
+│   ├── complejo.wbt                   ← escenario 2×2 m
+│   └── complejo2.wbt                  ← escenario 3×3 m
+├── analysis/
+│   ├── plot_comparison.py             ← script de visualización
+│   ├── Simple/
+│   │   ├── planned_path_SIMPLE.csv
+│   │   ├── trajectory_SIMPLE.csv
+│   │   └── trajectory_analysis_SIMPLE.png
+│   ├── Complejo/
+│   │   ├── planned_path_COMPLEJO.csv
+│   │   ├── trajectory_COMPLEJO.csv
+│   │   └── trajectory_analysis_COMPLEJO.png
+│   └── Muy_Complejo/
+│       ├── planned_path_MUY_COMPLEJO.csv
+│       ├── trajectory_MUY_COMPLEJO.csv
+│       └── trajectory_analysis_MUY_COMPLEJO.png
+├── readme_lab_1.md
+├── readme_lab_2.md
+└── README.md
+```
 
 ### Requisitos
 
@@ -292,12 +379,21 @@ controllers/robot_controller/trajectory_<ESCENARIO>.csv
 
 **5. Visualizar resultados**
 
+Copiar los CSV generados por el controlador a la subcarpeta correspondiente en `analysis/`:
+
 ```bash
-cd analysis
-python plot_comparison.py
+# Ejemplo para el escenario SIMPLE
+cp controllers/robot_controller/planned_path_SIMPLE.csv analysis/Simple/
+cp controllers/robot_controller/trajectory_SIMPLE.csv   analysis/Simple/
 ```
 
-El script detecta automáticamente el CSV más reciente y genera la imagen de análisis de trayectoria.
+Luego ejecutar el script de visualización desde la raíz del repositorio:
+
+```bash
+python analysis/plot_comparison.py
+```
+
+El script detecta automáticamente el escenario del CSV más reciente y guarda la imagen en `analysis/trajectory_analysis_<ESCENARIO>.png`.
 
 ---
 
@@ -305,15 +401,19 @@ El script detecta automáticamente el CSV más reciente y genera la imagen de an
 
 ### Conclusiones
 
-- El algoritmo A* garantiza la ruta óptima en el mapa discretizado para todos los escenarios probados. La inflación de 5 cm en los obstáculos proporciona un margen de seguridad adecuado para el radio del robot.
-- La estrategia Stop-and-Turn permite un control preciso del ángulo en cada waypoint sin necesidad de un controlador PID de orientación complejo.
-- La combinación de planificación global (A*) con evasión reactiva local permite completar misiones incluso cuando la odometría acumula error y el robot se desvía ligeramente de la ruta planificada.
+- **A* produce rutas viables y la inflación de 5 cm es suficiente para los escenarios simples.** Se planificaron 25 y 57 waypoints para SIMPLE y COMPLEJO respectivamente, completando ambas misiones. El escenario COMPLEJO es el más limpio: llega a la meta sin activar la evasión reactiva en ningún momento (0 activaciones), lo que demuestra que la ruta planificada es globalmente óptima y libre de colisiones.
+
+- **La acumulación de error odométrico es el factor limitante en misiones largas.** En MUY_COMPLEJO el robot falló: físicamente se desplazó en una dirección incorrecta y permaneció cerca del punto de partida, mientras la odometría reportaba estar recorriendo la ruta. Las 1,890 activaciones de evasión introdujeron rotaciones sucesivas que corrompieron la estimación de ángulo sin posibilidad de corrección, haciendo que la trayectoria estimada y la real divergieran completamente.
+
+- **La estrategia Stop-and-Turn garantiza precisión en el seguimiento de waypoints** sin un controlador PID, pero detener la traslación ante errores > 0.15 rad aumenta el tiempo de misión (7,337 pasos para 122 waypoints en MUY_COMPLEJO).
+
+- **La capa reactiva del Lab 2 aporta robustez frente a imprevistos**, pero su acción masiva en entornos muy densos (1,890 activaciones) es también la principal fuente de deriva. En escenarios de baja densidad (COMPLEJO), el sistema funciona con 0 activaciones y alta precisión.
 
 ### Limitaciones
 
 | Limitación | Descripción |
 |-----------|-------------|
-| **Deriva odométrica** | La odometría acumula error a lo largo del tiempo. En MUY_COMPLEJO (≈235 s) la posición estimada diverge significativamente de la posición real. |
+| **Deriva odométrica** | La odometría acumula error sin corrección. En MUY_COMPLEJO (≈235 s, 1,890 activaciones de evasión) la divergencia fue suficiente para que el robot no alcanzara la meta real, aunque la estimación interna indicara éxito. |
 | **Mapa estático** | El mapa se construye al inicio con los obstáculos del archivo `.wbt`. Obstáculos dinámicos o no declarados no se integran al plan. |
 | **Evasión reactiva simple** | El esquema retroceso-giro puede fallar en pasillos estrechos o ante obstáculos irregulares, generando bucles de atasco. |
 | **Sin relocalización** | El robot no tiene forma de corregir su pose estimada; no se usan landmarks ni GPS. |
