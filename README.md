@@ -215,13 +215,13 @@ Las métricas se calculan a partir de los archivos CSV generados durante la simu
 ### Trayectorias ejecutadas
 
 **Escenario SIMPLE (1×1 m)**
-![Trayectoria SIMPLE](analysis/fotos/trajectory_analysis_SIMPLE.png)
+![Trayectoria SIMPLE](analysis/Simple/trajectory_analysis_SIMPLE.png)
 
 **Escenario COMPLEJO (2×2 m)**
-![Trayectoria COMPLEJO](analysis/fotos/trajectory_analysis_COMPLEJO.png)
+![Trayectoria COMPLEJO](analysis/Complejo/trajectory_analysis_COMPLEJO.png)
 
 **Escenario MUY COMPLEJO (3×3 m)**
-![Trayectoria MUY_COMPLEJO](analysis/fotos/trajectory_analysis_MUY_COMPLEJO.png)
+![Trayectoria MUY COMPLEJO](analysis/%3CMuy%20Complejo%3E/trajectory_analysis_MUY_COMPLEJO.png)
 
 > **Leyenda de los gráficos:**  
 > — Línea azul discontinua: ruta planificada por A*  
@@ -235,9 +235,9 @@ Las métricas se calculan a partir de los archivos CSV generados durante la simu
 
 | Escenario | Enlace |
 |-----------|--------|
-| SIMPLE | [COMPLETAR] |
-| COMPLEJO | [COMPLETAR] |
-| MUY_COMPLEJO | [COMPLETAR] |
+| SIMPLE | [Video Escenario Simple](analysis/Videos/simple.mp4) |
+| COMPLEJO | [Video Escenario Complejo](analysis/Videos/complejo.mp4) |
+| MUY_COMPLEJO | [Video Escenario Muy Complejo](analysis/Videos/complejo2.mp4) |
 
 ---
 
