@@ -6,13 +6,9 @@ import matplotlib.pyplot as plt
 import matplotlib.patches as patches
 import matplotlib.transforms as transforms
 
-# =============================================================================
-# 1. AUTO-DETECCIÓN MAESTRA DEL ESCENARIO
-# =============================================================================
 _ANALYSIS_DIR  = os.path.dirname(os.path.abspath(__file__))
 _CONTROLLER_DIR = os.path.join(_ANALYSIS_DIR, '..', 'controllers', 'controlador')
 
-# Buscar todos los archivos que empiecen con "trajectory_" y terminen en ".csv"
 archivos_csv = glob.glob(os.path.join(_CONTROLLER_DIR, 'trajectory_*.csv'))
 
 if not archivos_csv: # Fallback por si están en la misma carpeta que este script
@@ -22,10 +18,9 @@ if not archivos_csv:
     print("ERROR: No se encontró ningún archivo CSV de trayectoria.")
     sys.exit(1)
 
-# MAGIA: Seleccionar el archivo que fue modificado más recientemente
 archivo_mas_reciente = max(archivos_csv, key=os.path.getmtime)
 
-# Extraer el nombre del escenario (Ej: de "trajectory_COMPLEJO.csv" extrae "COMPLEJO")
+# Extraer el nombre del escenario
 nombre_base = os.path.basename(archivo_mas_reciente)
 ESCENARIO_ACTUAL = nombre_base.replace('trajectory_', '').replace('.csv', '')
 
@@ -37,16 +32,19 @@ print(f">>> Auto-detectado: Graficando el último escenario simulado ({ESCENARIO
 # Cambia esto a "SIMPLE" o "COMPLEJO" según lo que quieras graficar
 
 if ESCENARIO_ACTUAL == "SIMPLE":
-    LIMITE_ARENA = 0.55  # Arena 1x1m (+ margen visual)
-    TITULO_GRAFICO = 'Proyecto Final: Escenario Simple (1x1) - A* y Evasión'
+    LIMITE_ARENA = 0.55 
+    TITULO_GRAFICO = 'Escenario Simple (1x1)'
     OBSTACULOS = [
-        {"t": [ 0.0,       -0.14],     "s": [0.5, 0.2], "ang": 0.0},
-        {"t": [ 0.39,       0.35],     "s": [0.4, 0.3], "ang": -1.570795},
-        {"t": [-0.533853,   0.242924], "s": [0.3, 0.4], "ang": 0.785398},
+    {"t": [ 0.23,    0.41],     "s": [0.2, 0.2], "ang": 0.523599},
+    {"t": [-0.26,   -0.40],     "s": [0.2, 0.2], "ang": 0.0},
+    {"t": [-0.28,    0.27],     "s": [0.3, 0.1], "ang": 0.0},
+    {"t": [ 0.33,   -0.12],     "s": [0.1, 0.4], "ang": 0.0},
+    {"t": [-0.352219, -0.0529289], "s": [0.3, 0.2], "ang": 0.785398},
+    {"t": [ 0.07,   -0.14],     "s": [0.2, 0.2], "ang": 0.0},
     ]
 elif ESCENARIO_ACTUAL == "COMPLEJO":
     LIMITE_ARENA = 1.05  # Arena 2x2m (+ margen visual)
-    TITULO_GRAFICO = 'Proyecto Final: Escenario Complejo (2x2) - A* y Evasión'
+    TITULO_GRAFICO = 'Escenario Complejo (2x2)'
     OBSTACULOS = [
         {"t": [ 0.19,       -0.56],     "s": [0.6, 0.3], "ang": 0.0},
         {"t": [ 0.34,       -0.11],     "s": [0.6, 0.3], "ang": -1.570795},
@@ -62,7 +60,7 @@ elif ESCENARIO_ACTUAL == "COMPLEJO":
     ]
 elif ESCENARIO_ACTUAL == "MUY_COMPLEJO":
     LIMITE_ARENA = 1.55  # Arena 2x2m (+ margen visual)
-    TITULO_GRAFICO = 'Proyecto Final: Escenario Complejo (2x2) - A* y Evasión'
+    TITULO_GRAFICO = 'Escenario Muy Complejo (3x3)'
     OBSTACULOS = [
         # Bloques obs1 (Cuadrados y rectángulos pequeños)
         {"t": [-0.16,     -1.15],     "s": [0.3, 0.3], "ang": 0.0},
