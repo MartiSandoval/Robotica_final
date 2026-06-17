@@ -22,7 +22,7 @@ RectangleArena {
 E-puck {
   translation -0.00271317 -1.43606 -0.00532
   rotation -0.002036549824947492 -0.0001561119865813277 -0.9999979140447535 -1.5838053071795866
-  controller "robot_controller"
+  controller "controlador_lab2"
 }
 Solid {
   translation -0.16 -1.15 0.05
@@ -433,20 +433,4 @@ Solid {
   boundingObject Box {
     size 1.5 0.5 0.3
   }
-}
-
-Solid {
-  translation -1.25 1.25 0.05
-  children [
-    Shape {
-      appearance PBRAppearance {
-        baseColor 0 1 0
-        metalness 0
-      }
-      geometry Sphere {
-        radius 0.05
-      }
-    }
-  ]
-  name "marcador_meta"
 }

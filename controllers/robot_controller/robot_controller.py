@@ -5,29 +5,97 @@ import heapq
 import os
 
 # =============================================================================
-# MAPA DE OCUPACIÓN - generado desde los obstáculos REALES del escenario_simple.wbt
+# CONFIGURACIÓN MAESTRA DEL ESCENARIO
 # =============================================================================
-# Arena 1x1 m (X,Y en [-0.5, 0.5]). Usamos una grilla fina de 5 cm (20x20) porque
-# los pasillos entre obstáculos miden ~10-12 cm: una grilla de 10 cm no los resuelve
-# y A* terminaba rozando obstáculos.
+# 'SIMPLE' o 'COMPLEJO' o 'MUY_COMPLEJO'
+ESCENARIO_ACTUAL = "MUY_COMPLEJO" 
+
 TAMANO_CELDA = 0.05
-GRID_N       = int(round(1.0 / TAMANO_CELDA))   # 20
-
-# Inflación = radio del robot (~0.035) + margen de seguridad (~0.015).
-# Garantiza que el centro de la ruta quede >= 5 cm de cualquier obstáculo/pared.
 INFLACION    = 0.05
-ARENA_HALF   = 0.5
 
-# Lista REAL de obstáculos (centro [x,y], tamaño [ancho,alto], rotación rad).
-# Debe coincidir con los Solid de worlds/escenario_simple.wbt.
-OBSTACULOS = [
+if ESCENARIO_ACTUAL == "SIMPLE":
+    ARENA_HALF = 0.5  # Mundo de 1x1 metros
+    GRID_N     = int(round((ARENA_HALF * 2) / TAMANO_CELDA)) # 20x20
+    
+    START_X, START_Y, START_PHI = 0.0611, -0.4, 1.5638
+    META_X,  META_Y             = -0.413, 0.413   # esquina superior izquierda, en zona claramente libre
+    
+    # Lista REAL de obstáculos (centro [x,y], tamaño [ancho,alto], rotación rad).
+    # Debe coincidir con los Solid de worlds/escenario_simple.wbt.
+    # Lista REAL de obstáculos extraída del nuevo mundo
+    OBSTACULOS = [
     {"t": [ 0.23,    0.41],     "s": [0.2, 0.2], "ang": 0.523599},
     {"t": [-0.26,   -0.40],     "s": [0.2, 0.2], "ang": 0.0},
     {"t": [-0.28,    0.27],     "s": [0.3, 0.1], "ang": 0.0},
     {"t": [ 0.33,   -0.12],     "s": [0.1, 0.4], "ang": 0.0},
     {"t": [-0.352219, -0.0529289], "s": [0.3, 0.2], "ang": 0.785398},
     {"t": [ 0.07,   -0.14],     "s": [0.2, 0.2], "ang": 0.0},
-]
+    ]
+
+elif ESCENARIO_ACTUAL == "COMPLEJO":
+    ARENA_HALF = 1.0  # Mundo de 2x2 metros
+    GRID_N     = int(round((ARENA_HALF * 2) / TAMANO_CELDA)) # 40x40
+    
+    # Posición inicial basada en tu e-puck (-0.87, -0.87)
+    START_X, START_Y, START_PHI = -0.87, -0.87, 1.5708
+    
+    # Meta en la esquina superior derecha (esquivando los cilindros y bloques)
+    META_X,  META_Y             = 0.80, 0.80  
+    
+    OBSTACULOS = [
+        # Bloques rectangulares
+        {"t": [ 0.19,       -0.56],     "s": [0.6, 0.3], "ang": 0.0},
+        {"t": [ 0.34,       -0.11],     "s": [0.6, 0.3], "ang": -1.570795},
+        {"t": [ 0.59,       -0.24],     "s": [0.3, 0.2], "ang": -1.570795},
+        # "bloque_invisible" en [0.34, -0.86] fue OMITIDO INTENCIONALMENTE para forzar evasión
+        {"t": [ 0.90,        0.34],     "s": [0.3, 0.2], "ang": -1.570795},
+        {"t": [ 0.0100693,   0.589526], "s": [0.1, 0.3], "ang": -0.523595},
+        {"t": [ 0.19,        0.34],     "s": [0.6, 0.3], "ang": 0.0},
+        {"t": [-0.89993,    -0.562913], "s": [0.1, 0.2], "ang": 1.5708},
+        
+        # Cilindros (aproximados como cajas usando el diámetro: radio * 2)
+        {"t": [-0.5, -0.1],  "s": [0.52, 0.52], "ang": 0.0}, # Cilindro 1 (r=0.26)
+        {"t": [-0.8,  0.79], "s": [0.80, 0.80], "ang": 0.0}, # Cilindro 2 (r=0.40)
+    ]
+elif ESCENARIO_ACTUAL == "MUY_COMPLEJO":
+    ARENA_HALF = 1.5  # Mundo enorme de 3x3 metros
+    GRID_N     = int(round((ARENA_HALF * 2) / TAMANO_CELDA)) # 60x60
+    
+    # Posición inicial exacta de tu e-puck
+    START_X, START_Y, START_PHI = -0.0027, -1.436, -1.5838
+    META_X,  META_Y = -1.25, 1.25 
+    
+    OBSTACULOS = [
+        # Bloques obs1 (Cuadrados y rectángulos pequeños)
+        {"t": [-0.16,     -1.15],     "s": [0.3, 0.3], "ang": 0.0},
+        {"t": [-0.33,      0.10],     "s": [0.5, 0.5], "ang": 0.0},
+        {"t": [ 0.31,     -1.00],     "s": [0.3, 0.3], "ang": 0.0},
+        {"t": [ 0.02,      0.11],     "s": [0.3, 0.3], "ang": 0.0},
+        {"t": [ 0.31,     -0.41],     "s": [0.3, 0.3], "ang": 0.0},
+        {"t": [ 0.61,      1.04],     "s": [0.3, 0.3], "ang": 0.0},
+        {"t": [ 0.40,      0.65],     "s": [0.3, 0.3], "ang": 0.0},
+        {"t": [ 1.27,      0.66],     "s": [0.5, 0.3], "ang": 0.0},
+        {"t": [ 0.95,     -1.22],     "s": [0.5, 0.3], "ang": 0.0},
+        {"t": [ 1.1607,   -0.0587],   "s": [0.5, 0.1], "ang": 2.6179},
+        {"t": [-0.9690,    0.2124],   "s": [0.5, 0.1], "ang": 3.1415},
+        {"t": [-0.6650,    0.0085],   "s": [0.5, 0.1], "ang": -2.3561},
+
+        # Bloques b (Muros grandes y divisores diagonales)
+        {"t": [-1.03,     -1.15],     "s": [1.2, 0.7], "ang": 0.0},
+        # Corrección de eje Z invertido (-1) a rotación estándar (+1)
+        {"t": [-0.3037,   -0.4490],   "s": [1.1, 0.2], "ang": 1.0472}, 
+        {"t": [ 0.4025,   -0.2140],   "s": [1.1, 0.2], "ang": 1.5708},
+        {"t": [-0.0374,    0.3159],   "s": [0.7, 0.2], "ang": 1.5708},
+        {"t": [ 0.3125,    0.7659],   "s": [0.9, 0.2], "ang": -3.1415},
+        {"t": [ 0.5625,    0.0959],   "s": [0.5, 0.2], "ang": -3.1415},
+        {"t": [ 0.6343,    1.0037],   "s": [0.7, 0.1], "ang": -1.0471},
+        # Corrección de eje Z invertido
+        {"t": [ 0.1743,    1.0696],   "s": [0.8, 0.1], "ang": 0.5236}, 
+        {"t": [ 1.3114,    1.1989],   "s": [1.3, 0.4], "ang": 2.3562},
+        {"t": [-0.6368,    1.1998],   "s": [1.5, 0.5], "ang": 0.7854},
+    ]
+else:
+    raise ValueError("ESCENARIO_ACTUAL no válido. Usa 'SIMPLE', 'COMPLEJO' o 'MUY_COMPLEJO'.")
 
 def celda_a_mundo(row, col):
     """Centro (x, y) de la celda (fila, columna)."""
@@ -168,8 +236,9 @@ for s in [front_right_sensor, front_left_sensor, diag_right_sensor, diag_left_se
 # =============================================================================
 # Pose REAL de partida del robot en Webots (translation/rotation del E-puck en el .wbt).
 # La odometría se inicializa aquí; el robot NO vuelve a leer su posición real (solo odometría).
-START_X, START_Y, START_PHI = 0.0611, -0.4, 1.5638
-META_X,  META_Y             = -0.30, 0.40   # esquina superior izquierda, en zona claramente libre
+#START_X, START_Y, START_PHI = 0.0, -0.37, 1.5708
+# START_X, START_Y, START_PHI = 0.0611, -0.4, 1.5638
+# META_X,  META_Y             = -0.04, 0.28   # esquina superior izquierda, en zona claramente libre
 
 NODO_INICIO = mundo_a_celda(START_X, START_Y)
 NODO_META   = mundo_a_celda(META_X, META_Y)
@@ -198,8 +267,8 @@ first_iteration = True
 # CSV Y VARIABLES
 # =============================================================================
 _SCRIPT_DIR      = os.path.dirname(os.path.abspath(__file__))
-PLANNED_PATH_CSV = os.path.join(_SCRIPT_DIR, 'planned_path.csv')
-TRAJECTORY_CSV   = os.path.join(_SCRIPT_DIR, 'trajectory.csv')
+PLANNED_PATH_CSV = os.path.join(_SCRIPT_DIR, f'planned_path_{ESCENARIO_ACTUAL}.csv')
+TRAJECTORY_CSV   = os.path.join(_SCRIPT_DIR, f'trajectory_{ESCENARIO_ACTUAL}.csv')
 
 with open(PLANNED_PATH_CSV, 'w', newline='') as f:
     w = csv.writer(f)
