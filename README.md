@@ -14,23 +14,21 @@
 
 ## Objetivo del proyecto
 
-Desarrollar un sistema de navegación autónoma para el robot diferencial E-puck en el simulador Webots, implementando el algoritmo A* para la planificación global de rutas sobre un mapa discretizado en celdas, complementado con un controlador de seguimiento de waypoints y una capa de evasión reactiva de obstáculos basada en sensores infrarrojos. El sistema se evalúa en tres entornos de complejidad creciente, midiendo la trayectoria real ejecutada frente a la ruta planificada.
-
+Desarrollar un sistema de navegación autónoma híbrido para el robot diferencial E-puck en el simulador Webots. El proyecto implementa una capa deliberativa utilizando el algoritmo A* para la planificación global de rutas sobre un mapa discretizado, y una capa reactiva de evasión de obstáculos basada en sensores infrarrojos. El rendimiento de la arquitectura se evalúa empíricamente en tres entornos de complejidad creciente, contrastando la trayectoria cinemática real (odometría) frente a la ruta ideal planificada.
 ---
 
-## Descripción del robot, sensores y actuadores
+## Especificaciones de Hardware Simulado
 
 **Plataforma de simulación:** Webots R2023b  
 **Robot:** E-puck (tracción diferencial)
 
-### Actuadores
+### Cinemática y Actuadores
 
-| Dispositivo | Especificación |
-|-------------|---------------|
-| Motor izquierdo (`left wheel motor`) | Velocidad máxima: 6.28 rad/s |
-| Motor derecho (`right wheel motor`) | Velocidad máxima: 6.28 rad/s |
-| Radio de rueda | 20.5 mm |
-| Distancia entre ejes | 52 mm |
+| Parámetro / Dispositivo | Especificación |
+|-------------------------|---------------|
+| Motor izquierdo y derecho | Velocidad máxima: 6.28 rad/s |
+| Radio de rueda ($R$) | 20.5 mm |
+| Distancia entre ejes ($L$) | 52 mm |
 
 ### Sensores
 
@@ -41,10 +39,11 @@ Desarrollar un sistema de navegación autónoma para el robot diferencial E-puck
 
 Los sensores frontales y diagonales (`ps0`, `ps1`, `ps6`, `ps7`) se fusionan mediante un **Filtro de Kalman escalar** para suavizar las lecturas ruidosas y estimar la distancia al obstáculo más cercano.
 
-### Modelo de odometría
+### Percepción y Filtrado
 
-En cada paso de simulación (32 ms):
+Para la evasión reactiva, se utilizan los sensores IR frontales y diagonales (`ps0`, `ps1`, `ps6`, `ps7`). Para mitigar el ruido inherente de los sensores, se extrae la lectura de mayor proximidad y se le aplica un **Filtro de Kalman escalar unidimensional**, permitiendo obtener una estimación robusta de la distancia al obstáculo más inminente. La pose del robot $(x, y, \phi)$ se estima internamente mediante los encoders de las ruedas.
 
+**Modelo de Odometría (Paso de simulación: 32 ms):**
 ```
 ds_l = R · Δθ_izquierda
 ds_r = R · Δθ_derecha
@@ -55,7 +54,6 @@ x_{k+1} = x_k + ds · cos(φ_k + dφ/2)
 y_{k+1} = y_k + ds · sin(φ_k + dφ/2)
 φ_{k+1} = φ_k + dφ
 ```
-
 Donde `R = 0.0205 m` (radio) y `L = 0.052 m` (base).
 
 ---
@@ -205,23 +203,26 @@ Las métricas se calculan a partir de los archivos CSV generados durante la simu
 |-----------|----------------------|---------------------|----------|------------------------|-------|
 | SIMPLE | 25 | 901 | 28.8 s | 35 | ✓ |
 | COMPLEJO | 57 | 1,687 | 54.0 s | 0 | ✓ |
-| MUY_COMPLEJO | 122 | 7,337 | 234.8 s | 1,890 | ✓ |
+| MUY_COMPLEJO | 122 | 7,337 | 234.8 s | 1,890 | ✘ |
 
 **Observaciones:**
 - En **SIMPLE**, la evasión se activa 35 veces debido al espacio reducido (1×1 m) y la cercanía de los obstáculos.
 - En **COMPLEJO**, la ruta A* es suficientemente buena para llegar sin ninguna evasión reactiva.
-- En **MUY_COMPLEJO**, el elevado número de activaciones (1,890) refleja la densidad de obstáculos y la longitud de la misión (≈ 235 s). El robot logra completar la ruta gracias al mecanismo anti-atasco.
+- En **MUY_COMPLEJO**, el elevado número de activaciones (1,890) refleja la densidad de obstáculos y la longitud de la misión (≈ 235 s). El robot no logra completar la ruta debido a la acumlacion de errores de la odometria.
 
 ### Trayectorias ejecutadas
 
 **Escenario SIMPLE (1×1 m)**
 ![Trayectoria SIMPLE](analysis/Simple/trajectory_analysis_SIMPLE.png)
+En este gráfico se observa una alta fidelidad general entre la trayectoria odométrica (línea roja) y la ruta global planificada por A* (línea azul discontinua). Sin embargo, dada la estrechez del entorno (1×1 m) y la proximidad de los obstáculos, el robot experimenta múltiples activaciones de la capa de evasión reactiva (puntos naranjas) principalmente al tomar las curvas y evadir las esquinas. Esto demuestra que la inflación de 5 cm en la grilla es un límite estricto, lo que obliga al sistema de control local a realizar correcciones finas y retrocesos para evitar colisiones reales en los vértices, compensando las limitaciones del mapa discreto.
 
 **Escenario COMPLEJO (2×2 m)**
 ![Trayectoria COMPLEJO](analysis/Complejo/trajectory_analysis_COMPLEJO.png)
+Este gráfico destaca por la ausencia total de activaciones reactivas (cero puntos naranjas). Al contar con un espacio más amplio (2×2 m) y pasillos más holgados entre los cilindros y bloques, la capa deliberativa pura (control Stop-and-Turn) es suficiente para guiar al robot desde el inicio hasta la meta. La trayectoria ejecutada (roja) se superpone casi de manera perfecta a la ruta A* (azul), validando la efectividad geométrica de la heurística. Además, confirma que en misiones de duración moderada y sin estrecheces críticas, el error acumulado por la cinemática diferencial se mantiene en rangos completamente tolerables.
 
 **Escenario MUY COMPLEJO (3×3 m)**
 ![Trayectoria MUY COMPLEJO](analysis/Muy_Complejo/trajectory_analysis_MUY_COMPLEJO.png)
+Aquí se evidencia gráficamente el problema de la deriva odométrica (odometry drift) en misiones de larga duración (más de 7,300 pasos de simulación). En la primera mitad del recorrido, la trayectoria real (roja) sigue fielmente el plan global (azul). Sin embargo, a medida que avanza y realiza múltiples giros, el error angular se acumula, provocando una divergencia severa. Esta desincronización entre la pose estimada y el mapa real hace que el planificador "choque" virtualmente la ruta contra las paredes, lo que gatilla una cantidad masiva de activaciones de evasión por los sensores IR (alta densidad de puntos naranjas) y rutinas de escape anti-atasco. A pesar del error cinemático acumulado, la robustez de la FSM reactiva logra mantener al robot operando hasta que su odometría interna registra la llegada a la meta.
 
 > **Leyenda de los gráficos:**  
 > — Línea azul discontinua: ruta planificada por A*  
@@ -326,3 +327,5 @@ El script detecta automáticamente el CSV más reciente y genera la imagen de an
 - **Fusión sensorial con IMU:** Combinar la odometría con una unidad de medición inercial para reducir la deriva en misiones largas.
 - **SLAM (Simultaneous Localization and Mapping):** Construir y actualizar el mapa mientras el robot navega, eliminando la dependencia del mapa estático preprogramado.
 - **Campos potenciales artificiales:** Sustituir o complementar la evasión reactiva con un campo repulsivo alrededor de los obstáculos para trayectorias de evasión más fluidas.
+Trabajo Futuro (Mejoras Propuestas)
+Implementación de SLAM: Integrar algoritmos de Simultaneous Localization and Mapping u odometría visual para corregir la pose en tiempo real y mitigar el error acumulado.
